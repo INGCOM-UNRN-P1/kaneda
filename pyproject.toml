@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kaneda"
+version = "0.1.0"
+description = "Auditor pedagógico de seguridad C, buffer overflows y llamadas a sistema restringidas"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+kaneda = "kaneda.cli:main"
+
+[project.entry-points."ripley.plugins"]
+security = "kaneda.ripley_plugin:KanedaPlugin"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kaneda"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
