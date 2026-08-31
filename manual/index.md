@@ -349,3 +349,12 @@ Podés encadenar `kaneda` con otras herramientas del ecosistema en una única l�
 kaneda audit src/ && ripley check src/
 ````
 
+---
+
+(manual-kaneda-seccion-plugins)=
+## 9. Extensión, Desarrollo de Plugins y API Python
+
+Para crear tus propias reglas, conectores de evaluación o integrar `kaneda` programáticamente en pipelines de CI/CD:
+
+- 👉 **Consultá la guía completa:** [Guía de Extensión y Creación de Plugins](plugins.md)
+
