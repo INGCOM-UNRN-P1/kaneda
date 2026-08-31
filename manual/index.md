@@ -179,3 +179,52 @@ check-kaneda:
 ````
 
 Ejecutá `make check-kaneda` antes de cada commit para asegurar que tu código conserve el estado de aprobación.
+
+---
+
+(manual-kaneda-arquitectura)=
+## 7. Arquitectura Interna y Mecanismo Técnico
+
+La herramienta **`kaneda`** implementa un motor de alta precisión basado en:
+
+- **Tecnología Núcleo:** `Clang Static Analyzer + Semgrep C Rules + Dangerous Functions AST Matcher`.
+- **Aislamiento y Determinismo:** Diseñada para operar sin efectos colaterales en entornos de integración continua (CI), terminales de estudiantes y servidores docentes headless.
+- **Manejo de Errores Pedagógico:** Todo fallo de sintaxis, memoria o lógica se traduce en una acción prescriptiva concreta con su respectiva justificación técnica.
+
+---
+
+(manual-kaneda-ecosistema)=
+## 8. Integración y Conexión con el Ecosistema
+
+````{note}
+Ninguna herramienta opera de forma aislada. **`kaneda`** forma parte del pipeline integral de evaluación, verificación y enseñanza de la cátedra.
+````
+
+### Diagrama de Flujo e Interoperabilidad
+
+````{mermaid}
+graph TD
+    SRC[Código C del Estudiante] --> KND[Kaneda: Auditor de Seguridad]
+    KND -->|Detección gets/strcpy/sprintf| AST[Clang AST Matcher]
+    KND -->|Alerta de Vulnerabilidad| RIP[Ripley: Microkernel de Reglas]
+    KND -->|Penalización de Seguridad| DRD[Dredd: Autograding Masivo]
+````
+
+### Matriz de Intercambio de Datos
+
+| Canal | Herramientas Conectadas | Tipo de Datos Transferidos |
+| :--- | :--- | :--- |
+| **Entradas (Inputs)** | - `Código fuente C (.c y .h)` | Código fuente, AST, binarios, testcases, contratos |
+| **Salidas (Outputs)** | - `ripley (reglas 0x3000h de seguridad)`
+- `dredd (bloqueo de entregas vulnerables)` | Informes Markdown, diagnósticos Rich, JSON, actas |
+| **Sincronización** | `ripley`, `daedalus`, `dredd` | Validación cruzada, flags compartidos y autofix |
+
+### Pipeline de Integración Recomendado
+
+Podés encadenar `kaneda` con otras herramientas del ecosistema en una única línea de comando:
+
+````{code-block} bash
+# Pipeline de integración típico
+kaneda audit src/ && ripley check src/
+````
+
