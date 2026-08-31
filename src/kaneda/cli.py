@@ -46,14 +46,39 @@ def main_callback(
     pass
 
 
+def generar_seccion_markdown(reporte) -> str:
+    """Genera sección de auditoría de seguridad para Dredd."""
+    lines = ["## Auditoría de Seguridad y Syscalls (Kaneda)\n"]
+    lines.append(f"- **Archivos analizados:** {reporte.archivos_analizados}")
+    lines.append(f"- **Vulnerabilidades detectadas:** {len(reporte.vulnerabilidades)}")
+    lines.append("")
+    if reporte.ok:
+        lines.append("> [!TIP]\n> **Código Seguro:** No se detectaron funciones prohibidas (`gets`, `strcpy`, `sprintf`), buffers vulnerables ni llamadas a sistema no autorizadas.\n")
+    else:
+        lines.append("| Archivo | Línea | Código | Severidad | Vulnerabilidad | Sugerencia |")
+        lines.append("| :--- | :---: | :---: | :---: | :--- | :--- |")
+        for v in reporte.vulnerabilidades:
+            lines.append(f"| `{v.archivo.name}` | {v.linea} | `{v.codigo}` | **{v.severidad}** | {v.titulo} | {v.sugerencia} |")
+        lines.append("")
+    return "\n".join(lines)
+
+
 @app.command("audit")
 def audit_cmd(
     rutas: List[Path] = typer.Argument(..., help="Archivos C/H o directorios a auditar."),
     json_output: bool = typer.Option(False, "--json", help="Salida estructurada en JSON."),
+    output_md: Optional[Path] = typer.Option(None, "--md", "--output-md", "-o", help="Generar sección de reporte en formato Markdown para fusión en Dredd."),
     strict: bool = typer.Option(False, "--strict", help="Falla si se detecta cualquier advertencia menor."),
 ) -> None:
     """Audita código C en busca de funciones vulnerables a buffer overflow y llamadas restringidas."""
     reporte = auditar_archivos(rutas)
+
+    if output_md:
+        md_text = generar_seccion_markdown(reporte)
+        output_md.parent.mkdir(parents=True, exist_ok=True)
+        output_md.write_text(md_text, encoding="utf-8")
+        console.print(f"[green]✓ Sección Markdown generada en:[/green] [cyan]{output_md}[/cyan]")
+        raise typer.Exit(code=0 if reporte.ok else 1)
 
     if json_output:
         print(json.dumps(reporte.to_dict(), indent=2, ensure_ascii=False))
@@ -88,6 +113,22 @@ def audit_cmd(
 
     console.print(tabla)
     raise typer.Exit(code=1)
+
+
+@app.command("report")
+def report_cmd(
+    rutas: List[Path] = typer.Argument(..., help="Archivos C/H o directorios a auditar."),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Ruta de destino del archivo Markdown."),
+) -> None:
+    """Genera directamente la sección de reporte Markdown de KANEDA para Dredd."""
+    reporte = auditar_archivos(rutas)
+    md_content = generar_seccion_markdown(reporte)
+    if output:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(md_content, encoding="utf-8")
+        console.print(f"[green]✓ Reporte Markdown generado en:[/green] [cyan]{output}[/cyan]")
+    else:
+        print(md_content)
 
 
 @app.command("rules")
