@@ -29,3 +29,15 @@ def test_cli_audit_json(tmp_path):
     data = json.loads(res.stdout)
     assert data["ok"] is False
     assert any(v["codigo"] == "KAN006" for v in data["vulnerabilidades"])
+
+
+def test_cli_doctor():
+    res = runner.invoke(app, ["doctor"])
+    assert res.exit_code == 0
+    assert "doctor" in res.stdout.lower()
+
+    res_json = runner.invoke(app, ["doctor", "--json"])
+    assert res_json.exit_code == 0
+    data = json.loads(res_json.stdout)
+    assert data["herramienta"] == "kaneda"
+    assert data["ok"] is True
