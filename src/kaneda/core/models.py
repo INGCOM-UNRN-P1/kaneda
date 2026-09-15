@@ -50,6 +50,7 @@ class ReporteSeguridad:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
+            "schema_version": "1.0.0",
             "ok": self.ok,
             "archivos_analizados": self.archivos_analizados,
             "total_vulnerabilidades": len(self.vulnerabilidades),

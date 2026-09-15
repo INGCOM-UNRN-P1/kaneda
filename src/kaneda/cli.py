@@ -48,7 +48,10 @@ def main_callback(
 
 def generar_seccion_markdown(reporte) -> str:
     """Genera sección de auditoría de seguridad para Dredd."""
-    lines = ["## Auditoría de Seguridad y Syscalls (Kaneda)\n"]
+    lines = [
+        "<!-- dredd-section: kaneda v1.0.0 -->\n",
+        "## Auditoría de Seguridad y Syscalls (Kaneda)\n",
+    ]
     lines.append(f"- **Archivos analizados:** {reporte.archivos_analizados}")
     lines.append(f"- **Vulnerabilidades detectadas:** {len(reporte.vulnerabilidades)}")
     lines.append("")
@@ -58,7 +61,10 @@ def generar_seccion_markdown(reporte) -> str:
         lines.append("| Archivo | Línea | Código | Severidad | Vulnerabilidad | Sugerencia |")
         lines.append("| :--- | :---: | :---: | :---: | :--- | :--- |")
         for v in reporte.vulnerabilidades:
-            lines.append(f"| `{v.archivo.name}` | {v.linea} | `{v.codigo}` | **{v.severidad}** | {v.titulo} | {v.sugerencia} |")
+            nom_limpio = v.archivo.name.replace("|", "&#124;")
+            tit_limpio = v.titulo.replace("|", "&#124;")
+            sug_limpio = v.sugerencia.replace("|", "&#124;")
+            lines.append(f"| `{nom_limpio}` | {v.linea} | `{v.codigo}` | **{v.severidad}** | {tit_limpio} | {sug_limpio} |")
         lines.append("")
     return "\n".join(lines)
 
