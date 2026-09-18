@@ -139,7 +139,7 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
                     pos_formato = 0 if func_name == "printf" else 1
                     if (
                         len(real_args) == pos_formato + 1
-                        and real_args[pos_formato].type in ("identifier", "field_expression", "call_expression")
+                        and real_args[pos_formato].type in ("identifier", "field_expression", "call_expression", "subscript_expression")
                     ):
                         var_name = real_args[pos_formato].text.decode("utf-8", errors="replace")
                         llamada = var_name if pos_formato == 0 else f"{real_args[0].text.decode('utf-8', errors='replace')}, {var_name}"

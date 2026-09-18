@@ -47,3 +47,9 @@ def test_formato_por_variable_se_detecta_en_printf_y_fprintf(tmp_path, llamada):
 )
 def test_el_formato_literal_no_se_marca(tmp_path, llamada):
     assert not any(c == "KAN005" for _, c in _codigos_por_linea(tmp_path, "    " + llamada))
+
+
+@pytest.mark.parametrize("llamada", ["printf(argv[1]);", "fprintf(stderr, formatos[i]);"])
+def test_formato_tomado_de_un_arreglo_se_detecta(tmp_path, llamada):
+    """`printf(argv[1])` es el ejemplo de manual de cadena de formato controlada por el usuario."""
+    assert (4, "KAN005") in _codigos_por_linea(tmp_path, "    " + llamada)
