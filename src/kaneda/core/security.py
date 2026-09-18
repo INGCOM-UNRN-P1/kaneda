@@ -111,8 +111,10 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
                         codigo_linea=linea_cod,
                     ))
 
-                # KAN004: scanf("%s")
-                elif func_name == "scanf" and args_node:
+                # KAN004: scanf("%s") y sus variantes sobre archivo o cadena. El motor
+                # comparaba `== "scanf"` exacto, así que `fscanf(f, "%s", b)` y
+                # `sscanf(s, "%s", b)` —la misma lectura sin límite— pasaban sin hallazgo.
+                elif func_name in ("scanf", "fscanf", "sscanf") and args_node:
                     for arg in args_node.children:
                         if arg.type == "string_literal" and "%s" in arg.text.decode("utf-8", errors="replace"):
                             info = CATALOGO_SEGURIDAD["KAN004"]
@@ -129,11 +131,18 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
                             ))
                             break
 
-                # KAN005: printf(variable)
-                elif func_name == "printf" and args_node:
+                # KAN005: printf(variable) / fprintf(f, variable). La cadena de
+                # formato es el argumento 0 en printf y el 1 en fprintf; el README
+                # promete ambas formas y solo se detectaba `printf`.
+                elif func_name in ("printf", "fprintf") and args_node:
                     real_args = [a for a in args_node.children if a.type not in ("(", ")", ",")]
-                    if len(real_args) == 1 and real_args[0].type in ("identifier", "field_expression", "call_expression"):
-                        var_name = real_args[0].text.decode("utf-8", errors="replace")
+                    pos_formato = 0 if func_name == "printf" else 1
+                    if (
+                        len(real_args) == pos_formato + 1
+                        and real_args[pos_formato].type in ("identifier", "field_expression", "call_expression")
+                    ):
+                        var_name = real_args[pos_formato].text.decode("utf-8", errors="replace")
+                        llamada = var_name if pos_formato == 0 else f"{real_args[0].text.decode('utf-8', errors='replace')}, {var_name}"
                         info = CATALOGO_SEGURIDAD["KAN005"]
                         vulnerabilidades.append(Vulnerabilidad(
                             codigo="KAN005",
@@ -142,7 +151,7 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
                             archivo=archivo,
                             linea=idx,
                             columna=col,
-                            mensaje=f"Invocación 'printf({var_name})' sin cadena de formato literal constante.",
+                            mensaje=f"Invocación '{func_name}({llamada})' sin cadena de formato literal constante.",
                             sugerencia=info["sugerencia"],
                             codigo_linea=linea_cod,
                         ))
