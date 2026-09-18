@@ -74,7 +74,7 @@ def audit_cmd(
     rutas: List[Path] = typer.Argument(..., help="Archivos C/H o directorios a auditar."),
     json_output: bool = typer.Option(False, "--json", help="Salida estructurada en JSON."),
     output_md: Optional[Path] = typer.Option(None, "--md", "--output-md", "-o", help="Generar sección de reporte en formato Markdown para fusión en Dredd."),
-    strict: bool = typer.Option(False, "--strict", help="Falla si se detecta cualquier advertencia menor."),
+    strict: bool = typer.Option(False, "--strict", hidden=True, help="Sin efecto: cualquier hallazgo ya hace fallar la auditoría (se acepta por compatibilidad)."),
 ) -> None:
     """Audita código C en busca de funciones vulnerables a buffer overflow y llamadas restringidas."""
     reporte = auditar_archivos(rutas)
