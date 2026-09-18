@@ -10,6 +10,7 @@ from tree_sitter import Language, Parser, Node
 
 from kaneda.core.models import ReporteSeguridad, Vulnerabilidad
 from kaneda.core.rules import CATALOGO_SEGURIDAD
+from kaneda.core.preprocesador import enmascarar_bloques_inactivos
 
 _C_LANGUAGE: Optional[Language] = None
 _PARSER: Optional[Parser] = None
@@ -43,6 +44,10 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
         contenido = archivo.read_text(encoding="utf-8", errors="replace")
     except Exception:
         return []
+
+    # El contenido de un `#if 0` no se compila: enmascararlo evita reportar
+    # hallazgos sobre código deliberadamente desactivado.
+    contenido = enmascarar_bloques_inactivos(contenido)
 
     lineas = contenido.splitlines()
     source_bytes = contenido.encode("utf-8")
