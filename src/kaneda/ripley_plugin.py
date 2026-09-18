@@ -11,7 +11,7 @@ from kaneda.core.security import auditar_archivos
 class KanedaPlugin:
     """Plugin de auditoría de seguridad y llamadas restringidas para Ripley."""
 
-    name = "security_audit"
+    name = "security"
     version = "0.1.0"
 
     def is_available(self) -> bool:
