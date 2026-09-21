@@ -135,6 +135,8 @@ def report_cmd(
         console.print(f"[green]✓ Reporte Markdown generado en:[/green] [cyan]{output}[/cyan]")
     else:
         print(md_content)
+    if not reporte.ok:
+        raise typer.Exit(code=1)
 
 
 @app.command("rules")

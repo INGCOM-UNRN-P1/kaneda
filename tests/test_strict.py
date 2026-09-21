@@ -34,3 +34,9 @@ def test_strict_se_acepta_y_no_cambia_el_veredicto(con_hallazgo, limpio):
 def test_strict_no_aparece_en_la_ayuda_como_si_hiciera_algo():
     ayuda = runner.invoke(app, ["audit", "--help"]).output
     assert "--strict" not in ayuda
+
+
+def test_report_sale_1_con_vulnerabilidades_como_audit(con_hallazgo, limpio):
+    """KANEDA-D0403: report reflejaba 0 siempre, inconsistente con audit."""
+    assert runner.invoke(app, ["report", str(con_hallazgo)]).exit_code == 1
+    assert runner.invoke(app, ["report", str(limpio)]).exit_code == 0
