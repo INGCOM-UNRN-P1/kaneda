@@ -14,6 +14,7 @@ KANEDA es una herramienta pedagógica para la detección temprana de funciones C
 - Detección de llamadas al sistema restringidas o no autorizadas (red, sockets, bifurcación no controlada).
 
 ### Qué no cubre (Límites y Delegación)
+- Propiedad de la detección de funciones inseguras (`gets`, `strcpy`, `sprintf`, `scanf("%s")`): es de `kaneda`. `gaff` (`0x5004h`, `0x5006h`, `0x5008h`) solo señala el uso desde el estilo y `spunkmeyer` lo hace como antipatrón didáctico; no son la fuente de verdad de seguridad.
 - Confinamiento y sandbox en tiempo de ejecución (delegado a `nostromo`).
 - Análisis dinámico de sanitizers en memoria (delegado a `tetsuo`).
 - Depuración post-mortem de crashes (delegado a `hal`).
