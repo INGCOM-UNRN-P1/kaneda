@@ -7,7 +7,7 @@ KANEDA es una herramienta pedagógica para la detección temprana de funciones C
 ## 🎯 Alcance
 
 ### Qué cubre
-- Auditoría pedagógica de seguridad estática en código C bajo las reglas de cátedra `0x30XXh` (`KAN001`-`KAN007`).
+- Auditoría pedagógica de seguridad estática en código C con su propio catálogo de 7 reglas (`KAN001`-`KAN007`). Sus códigos son `KANxxx`, no `0x30XXh`: esa numeración pertenece a `gaff` y no se emite desde acá.
 - Detección estricta de funciones vulnerables a desbordamiento de búfer (`gets`, `strcpy`, `strcat`, `sprintf`, `scanf` con `%s` sin límite de ancho).
 - Detección de vulnerabilidades de cadena de formato (`printf` o `fprintf` con variable como formato directo sin especificadores).
 - Prohibición terminante de invocación de subprocesos y comandos del sistema (`system`, `popen`).

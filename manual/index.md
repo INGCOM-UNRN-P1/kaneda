@@ -336,7 +336,7 @@ graph TD
 | Canal | Herramientas Conectadas | Tipo de Datos Transferidos |
 | :--- | :--- | :--- |
 | **Entradas (Inputs)** | - `Código fuente C (.c y .h)` | Código fuente, AST, binarios, testcases, contratos |
-| **Salidas (Outputs)** | - `ripley (reglas 0x3000h de seguridad)`
+| **Salidas (Outputs)** | - `ripley (reglas KAN001-KAN007 de seguridad)`
 - `dredd (bloqueo de entregas vulnerables)` | Informes Markdown, diagnósticos Rich, JSON, actas |
 | **Sincronización** | `ripley`, `daedalus`, `dredd` | Validación cruzada, flags compartidos y autofix |
 
