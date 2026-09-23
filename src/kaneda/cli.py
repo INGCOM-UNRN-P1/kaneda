@@ -48,8 +48,9 @@ def main_callback(
 
 def generar_seccion_markdown(reporte) -> str:
     """Genera sección de auditoría de seguridad para Dredd."""
+    status = "ok" if reporte.ok else "fail"
     lines = [
-        "<!-- dredd-section: kaneda v1.0.0 -->\n",
+        f"<!-- dredd-section: kaneda, tool=kaneda, version=1.0.0, status={status} -->\n",
         "## Auditoría de Seguridad y Syscalls (Kaneda)\n",
     ]
     lines.append(f"- **Archivos analizados:** {reporte.archivos_analizados}")
