@@ -19,6 +19,7 @@ console = Console()
 err_console = Console(stderr=True)
 
 app = typer.Typer(
+    context_settings={"help_option_names": ["-h", "--help"]},
     name="kaneda",
     help="🔒 KANEDA — Auditor pedagógico de seguridad C, buffer overflows y llamadas a sistema restringidas.",
     add_completion=True,
