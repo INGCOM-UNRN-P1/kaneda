@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kaneda"
-version = "0.1.0"
+version = "0.2.0"
 description = "Auditor pedagógico de seguridad C, buffer overflows y llamadas a sistema restringidas"
 readme = "README.md"
 license = {text = "GPL-3.0-or-later"}
