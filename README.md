@@ -48,3 +48,24 @@ kaneda audit src/ --json
 # 3. Listar catálogo de reglas
 kaneda rules
 ```
+
+<!-- p1:referencia:inicio — generado por p1-tools/scripts/readme_generado.py: no editar a mano -->
+
+## Referencia rápida
+
+### Requisitos
+
+- Python ≥ 3.11 y [uv](https://docs.astral.sh/uv/getting-started/installation/).
+
+### Comandos
+
+| Comando | Descripción |
+|:--|:--|
+| `kaneda audit` | Audita código C en busca de funciones vulnerables a buffer overflow y llamadas restringidas. |
+| `kaneda report` | Genera directamente la sección de reporte Markdown de KANEDA para Dredd. |
+| `kaneda rules` | Lista las reglas de seguridad auditadas por KANEDA. |
+| `kaneda doctor` | Verifica el estado del entorno de auditoría de seguridad KANEDA (Tree-Sitter C, Python, GCC). |
+
+Ayuda de cada comando: `kaneda <comando> -h`.
+
+<!-- p1:referencia:fin -->
