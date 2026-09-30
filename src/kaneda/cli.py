@@ -55,7 +55,7 @@ def generar_seccion_markdown(reporte) -> str:
 
 @app.command("audit")
 def audit_cmd(
-    rutas: List[Path] = typer.Argument(..., help="Archivos C/H o directorios a auditar."),
+    rutas: List[Path] = typer.Argument(..., exists=True, help="Archivos C/H o directorios a auditar."),
     json_output: bool = typer.Option(False, "--json", help="Salida estructurada en JSON."),
     output_md: Optional[Path] = typer.Option(None, "--md", "--output-md", "-o", help="Generar sección de reporte en formato Markdown para fusión en Dredd."),
     strict: bool = typer.Option(False, "--strict", hidden=True, help="Sin efecto: cualquier hallazgo ya hace fallar la auditoría (se acepta por compatibilidad)."),
@@ -107,7 +107,7 @@ def audit_cmd(
 
 @app.command("report")
 def report_cmd(
-    rutas: List[Path] = typer.Argument(..., help="Archivos C/H o directorios a auditar."),
+    rutas: List[Path] = typer.Argument(..., exists=True, help="Archivos C/H o directorios a auditar."),
     output: Optional[Path] = typer.Option(None, "--output", "-o", help="Ruta de destino del archivo Markdown."),
 ) -> None:
     """Genera directamente la sección de reporte Markdown de KANEDA para Dredd."""
