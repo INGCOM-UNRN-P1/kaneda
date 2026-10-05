@@ -11,6 +11,7 @@ from tree_sitter import Language, Parser, Node
 from kaneda.core.models import ReporteSeguridad, Vulnerabilidad
 from kaneda.core.rules import CATALOGO_SEGURIDAD
 from kaneda.core.preprocesador import enmascarar_bloques_inactivos
+from kaneda.core.supresion import leer_supresiones, suprimida
 
 _C_LANGUAGE: Optional[Language] = None
 _PARSER: Optional[Parser] = None
@@ -45,6 +46,7 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
     except Exception:
         return []
 
+    contenido_original = contenido
     # El contenido de un `#if 0` no se compila: enmascararlo evita reportar
     # hallazgos sobre código deliberadamente desactivado.
     contenido = enmascarar_bloques_inactivos(contenido)
@@ -190,6 +192,10 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
             _traverse(child)
 
     _traverse(tree.root_node)
+
+    supresiones = leer_supresiones(contenido_original.splitlines())
+    for v in vulnerabilidades:
+        v.suprimida, v.motivo_supresion = suprimida(v.codigo, v.linea, supresiones)
     return vulnerabilidades
 
 
@@ -211,5 +217,6 @@ def auditar_archivos(rutas: List[Path]) -> ReporteSeguridad:
 
     return ReporteSeguridad(
         archivos_analizados=len(archivos_objetivo),
-        vulnerabilidades=vulns,
+        vulnerabilidades=[v for v in vulns if not v.suprimida],
+        suprimidas=[v for v in vulns if v.suprimida],
     )

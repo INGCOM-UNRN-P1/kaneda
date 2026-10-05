@@ -13,7 +13,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from kaneda import __version__
-from kaneda.core.rules import CATALOGO_SEGURIDAD
+from kaneda.core.rules import CATALOGO_SEGURIDAD, CATALOGO_VERSION
 from kaneda.core.security import auditar_archivos
 
 console = Console()
@@ -74,6 +74,9 @@ def audit_cmd(
         print(json.dumps(reporte.to_dict(), indent=2, ensure_ascii=False))
         raise typer.Exit(code=0 if reporte.ok else 1)
 
+    for v in reporte.suprimidas:
+        console.print(f"[dim]Suprimida {v.codigo} en {v.archivo.name}:{v.linea} — {v.motivo_supresion or '(sin motivo)'}[/dim]")
+
     if reporte.ok:
         console.print(Panel(
             f"[bold green]✓ No se detectaron vulnerabilidades ni funciones prohibidas en los {reporte.archivos_analizados} archivos analizados.[/bold green]",
@@ -124,19 +127,59 @@ def report_cmd(
 
 
 @app.command("rules")
-def rules_cmd() -> None:
+def rules_cmd(
+    json_output: bool = typer.Option(False, "--json", "-j", help="Exportar el catálogo versionado (con CWE y regla del apunte) en JSON."),
+) -> None:
     """Lista las reglas de seguridad auditadas por KANEDA."""
+    if json_output:
+        print(json.dumps({
+            "schema_version": "1.0.0",
+            "herramienta": "kaneda",
+            "version_catalogo": CATALOGO_VERSION,
+            "reglas": [{"codigo": cod, **info} for cod, info in sorted(CATALOGO_SEGURIDAD.items())],
+        }, indent=2, ensure_ascii=False))
+        return
     tabla = Table(title=f"Catálogo de Reglas de Seguridad KANEDA ({len(CATALOGO_SEGURIDAD)} reglas)")
     tabla.add_column("Código", justify="center", style="bold cyan")
     tabla.add_column("Severidad", justify="center")
+    tabla.add_column("CWE", justify="center", style="magenta")
     tabla.add_column("Título", style="bold")
     tabla.add_column("Descripción")
 
     for cod, info in sorted(CATALOGO_SEGURIDAD.items()):
         color = "red" if info["severidad"] in ("CRITICO", "ALTO") else "yellow"
-        tabla.add_row(cod, f"[{color}]{info['severidad']}[/{color}]", info["titulo"], info["descripcion"])
+        tabla.add_row(cod, f"[{color}]{info['severidad']}[/{color}]", info.get("cwe") or "—", info["titulo"], info["descripcion"])
 
     console.print(tabla)
+    console.print("[dim]`kaneda explain KAN002` explica una regla con un ejemplo; `--json` exporta el catálogo.[/dim]")
+
+
+@app.command("explain")
+def explain_cmd(
+    regla: str = typer.Argument(..., help="Código de la regla (por ejemplo KAN002)."),
+) -> None:
+    """Explica una regla: el riesgo, su CWE, cómo corregirla y un ejemplo antes y después (QoL #577)."""
+    info = CATALOGO_SEGURIDAD.get(regla.strip().upper())
+    if info is None:
+        err_console.print(f"[red]Error:[/red] no existe la regla '{regla}'. Las reglas son: {', '.join(sorted(CATALOGO_SEGURIDAD))}.")
+        raise typer.Exit(code=2)
+    cwe = info.get("cwe")
+    enlaces = []
+    if cwe:
+        enlaces.append(f"{cwe}: https://cwe.mitre.org/data/definitions/{cwe.split('-')[1]}.html")
+    if info.get("regla_catedra"):
+        from yutani.hallazgos import enlace_apunte
+
+        enlaces.append(f"Regla {info['regla_catedra']} del apunte: {enlace_apunte('seguridad', info['regla_catedra'])}")
+    console.print(Panel(
+        f"[bold]{info['titulo']}[/bold] ({info['severidad']})\n\n{info['descripcion']}\n\n"
+        f"[bold green]Cómo corregirlo:[/bold green] {info['sugerencia']}\n\n"
+        f"[bold red]✗ Antes:[/bold red]\n{info.get('ejemplo_incorrecto') or '—'}\n\n"
+        f"[bold green]✓ Después:[/bold green]\n{info.get('ejemplo_correcto') or '—'}"
+        + ("\n\n" + "\n".join(enlaces) if enlaces else "")
+        + f"\n\n[dim]Si en una línea es correcto, suprimilo con un motivo: // kaneda:ignore {regla.upper()} <motivo>[/dim]",
+        title=f"KANEDA · {regla.upper()}",
+    ))
 
 
 @app.command("doctor")

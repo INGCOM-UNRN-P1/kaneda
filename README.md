@@ -45,9 +45,23 @@ kaneda audit src/ main.c
 # 2. Salida estructurada JSON
 kaneda audit src/ --json
 
-# 3. Listar catálogo de reglas
+# 3. Listar catálogo de reglas (con su CWE) o exportarlo versionado
 kaneda rules
+kaneda rules --json
+
+# 4. Explicar una regla: riesgo, CWE, cómo corregirla y un ejemplo antes y después
+kaneda explain KAN002
 ```
+
+kaneda es el dueño del catálogo de funciones inseguras: cada regla lleva su CWE (CWE-120,
+CWE-134…) y, si existe, la regla del apunte que la cubre; `kaneda rules --json` lo exporta con
+`version_catalogo` para que lo referencien las otras herramientas. Con `audit --json` sale además
+`hallazgos`, la forma común del ecosistema (`yutani.hallazgos`).
+
+**Supresión con motivo.** Si en una línea el uso es correcto, se suprime con un comentario en esa
+línea o en la anterior: `// kaneda:ignore KAN002 el destino se reservó con strlen + 1`. Sin
+códigos se suprime cualquier regla de esa línea. Las supresiones no hacen fallar la auditoría, pero
+se informan con su motivo (en `suprimidas` del JSON) para que el docente las vea.
 
 <!-- p1:referencia:inicio — generado por p1-tools/scripts/readme_generado.py: no editar a mano -->
 
@@ -64,13 +78,14 @@ kaneda rules
 | `kaneda audit` | Audita código C en busca de funciones vulnerables a buffer overflow y llamadas restringidas. |
 | `kaneda report` | Genera directamente la sección de reporte Markdown de KANEDA para Dredd. |
 | `kaneda rules` | Lista las reglas de seguridad auditadas por KANEDA. |
+| `kaneda explain` | Explica una regla: el riesgo, su CWE, cómo corregirla y un ejemplo antes y después (QoL #577). |
 | `kaneda doctor` | Verifica el estado del entorno de auditoría de seguridad KANEDA (Tree-Sitter C, Python, GCC). |
 
 Ayuda de cada comando: `kaneda <comando> -h`.
 
 ### Salida JSON
 
-Con `--json`, estos comandos emiten el resultado como JSON por la salida estándar, para usarlo desde scripts, ripley o dredd: `kaneda audit`, `kaneda doctor`. El de `doctor --json` lleva `schema_version` y `ok`.
+Con `--json`, estos comandos emiten el resultado como JSON por la salida estándar, para usarlo desde scripts, ripley o dredd: `kaneda audit`, `kaneda rules`, `kaneda doctor`. El de `doctor --json` lleva `schema_version` y `ok`.
 
 ### Códigos de salida
 
