@@ -1,7 +1,6 @@
 """Tests de integración de la CLI de KANEDA."""
 
 import json
-from pathlib import Path
 from typer.testing import CliRunner
 from kaneda.cli import app
 

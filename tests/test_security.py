@@ -1,7 +1,5 @@
 """Tests unitarios para el auditor de seguridad en KANEDA."""
 
-from pathlib import Path
-import pytest
 from kaneda.core.security import auditar_archivo, auditar_archivos
 
 

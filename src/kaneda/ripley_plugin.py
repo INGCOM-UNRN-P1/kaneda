@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from kaneda import __version__
 from kaneda.core.security import auditar_archivos

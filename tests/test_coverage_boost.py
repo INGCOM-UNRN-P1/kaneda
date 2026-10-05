@@ -1,11 +1,9 @@
 """Tests adicionales para maximizar la cobertura en KANEDA."""
 
-import json
-from pathlib import Path
 from typer.testing import CliRunner
 import kaneda.cli
 from kaneda.cli import app
-from kaneda.core.security import auditar_archivos, auditar_archivo
+from kaneda.core.security import auditar_archivos
 from kaneda.ripley_plugin import KanedaPlugin
 
 runner = CliRunner()
