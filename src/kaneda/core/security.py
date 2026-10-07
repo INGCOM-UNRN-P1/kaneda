@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, Optional, Set
+from typing import Dict, List, Optional, Set
 
 import tree_sitter_c as tsc
 from tree_sitter import Language, Parser, Node
@@ -17,6 +17,11 @@ _C_LANGUAGE: Optional[Language] = None
 _PARSER: Optional[Parser] = None
 
 
+def _texto(info: Dict[str, Optional[str]], clave: str) -> str:
+    """Un campo de texto del catálogo (los opcionales, como el CWE, pueden ser None)."""
+    return info.get(clave) or ""
+
+
 def get_c_parser() -> Parser:
     global _C_LANGUAGE, _PARSER
     if _PARSER is None:
@@ -27,7 +32,7 @@ def get_c_parser() -> Parser:
 
 def _find_identifier(node: Node) -> Optional[str]:
     if node.type in ("identifier", "type_identifier", "field_identifier"):
-        return node.text.decode("utf-8", errors="replace")
+        return (node.text or b"").decode("utf-8", errors="replace")
     for child in node.children:
         res = _find_identifier(child)
         if res:
@@ -73,13 +78,13 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
                     info = CATALOGO_SEGURIDAD["KAN001"]
                     vulnerabilidades.append(Vulnerabilidad(
                         codigo="KAN001",
-                        titulo=info["titulo"],
-                        severidad=info["severidad"],
+                        titulo=_texto(info, "titulo"),
+                        severidad=_texto(info, "severidad"),
                         archivo=archivo,
                         linea=idx,
                         columna=col,
-                        mensaje=info["descripcion"],
-                        sugerencia=info["sugerencia"],
+                        mensaje=_texto(info, "descripcion"),
+                        sugerencia=_texto(info, "sugerencia"),
                         codigo_linea=linea_cod,
                     ))
 
@@ -88,13 +93,13 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
                     info = CATALOGO_SEGURIDAD["KAN002"]
                     vulnerabilidades.append(Vulnerabilidad(
                         codigo="KAN002",
-                        titulo=info["titulo"],
-                        severidad=info["severidad"],
+                        titulo=_texto(info, "titulo"),
+                        severidad=_texto(info, "severidad"),
                         archivo=archivo,
                         linea=idx,
                         columna=col,
                         mensaje=f"Uso inseguro de '{func_name}()'.",
-                        sugerencia=info["sugerencia"],
+                        sugerencia=_texto(info, "sugerencia"),
                         codigo_linea=linea_cod,
                     ))
 
@@ -103,13 +108,13 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
                     info = CATALOGO_SEGURIDAD["KAN003"]
                     vulnerabilidades.append(Vulnerabilidad(
                         codigo="KAN003",
-                        titulo=info["titulo"],
-                        severidad=info["severidad"],
+                        titulo=_texto(info, "titulo"),
+                        severidad=_texto(info, "severidad"),
                         archivo=archivo,
                         linea=idx,
                         columna=col,
-                        mensaje=info["descripcion"],
-                        sugerencia=info["sugerencia"],
+                        mensaje=_texto(info, "descripcion"),
+                        sugerencia=_texto(info, "sugerencia"),
                         codigo_linea=linea_cod,
                     ))
 
@@ -118,17 +123,17 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
                 # `sscanf(s, "%s", b)` —la misma lectura sin límite— pasaban sin hallazgo.
                 elif func_name in ("scanf", "fscanf", "sscanf") and args_node:
                     for arg in args_node.children:
-                        if arg.type == "string_literal" and "%s" in arg.text.decode("utf-8", errors="replace"):
+                        if arg.type == "string_literal" and "%s" in (arg.text or b"").decode("utf-8", errors="replace"):
                             info = CATALOGO_SEGURIDAD["KAN004"]
                             vulnerabilidades.append(Vulnerabilidad(
                                 codigo="KAN004",
-                                titulo=info["titulo"],
-                                severidad=info["severidad"],
+                                titulo=_texto(info, "titulo"),
+                                severidad=_texto(info, "severidad"),
                                 archivo=archivo,
                                 linea=idx,
                                 columna=col,
-                                mensaje=info["descripcion"],
-                                sugerencia=info["sugerencia"],
+                                mensaje=_texto(info, "descripcion"),
+                                sugerencia=_texto(info, "sugerencia"),
                                 codigo_linea=linea_cod,
                             ))
                             break
@@ -143,18 +148,18 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
                         len(real_args) == pos_formato + 1
                         and real_args[pos_formato].type in ("identifier", "field_expression", "call_expression", "subscript_expression")
                     ):
-                        var_name = real_args[pos_formato].text.decode("utf-8", errors="replace")
-                        llamada = var_name if pos_formato == 0 else f"{real_args[0].text.decode('utf-8', errors='replace')}, {var_name}"
+                        var_name = (real_args[pos_formato].text or b"").decode("utf-8", errors="replace")
+                        llamada = var_name if pos_formato == 0 else f"{(real_args[0].text or b"").decode('utf-8', errors='replace')}, {var_name}"
                         info = CATALOGO_SEGURIDAD["KAN005"]
                         vulnerabilidades.append(Vulnerabilidad(
                             codigo="KAN005",
-                            titulo=info["titulo"],
-                            severidad=info["severidad"],
+                            titulo=_texto(info, "titulo"),
+                            severidad=_texto(info, "severidad"),
                             archivo=archivo,
                             linea=idx,
                             columna=col,
                             mensaje=f"Invocación '{func_name}({llamada})' sin cadena de formato literal constante.",
-                            sugerencia=info["sugerencia"],
+                            sugerencia=_texto(info, "sugerencia"),
                             codigo_linea=linea_cod,
                         ))
 
@@ -163,13 +168,13 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
                     info = CATALOGO_SEGURIDAD["KAN006"]
                     vulnerabilidades.append(Vulnerabilidad(
                         codigo="KAN006",
-                        titulo=info["titulo"],
-                        severidad=info["severidad"],
+                        titulo=_texto(info, "titulo"),
+                        severidad=_texto(info, "severidad"),
                         archivo=archivo,
                         linea=idx,
                         columna=col,
                         mensaje=f"Llamada a '{func_name}()' detectada.",
-                        sugerencia=info["sugerencia"],
+                        sugerencia=_texto(info, "sugerencia"),
                         codigo_linea=linea_cod,
                     ))
 
@@ -178,13 +183,13 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
                     info = CATALOGO_SEGURIDAD["KAN007"]
                     vulnerabilidades.append(Vulnerabilidad(
                         codigo="KAN007",
-                        titulo=info["titulo"],
-                        severidad=info["severidad"],
+                        titulo=_texto(info, "titulo"),
+                        severidad=_texto(info, "severidad"),
                         archivo=archivo,
                         linea=idx,
                         columna=col,
                         mensaje=f"Llamada a syscall restringida '{func_name}()'.",
-                        sugerencia=info["sugerencia"],
+                        sugerencia=_texto(info, "sugerencia"),
                         codigo_linea=linea_cod,
                     ))
 
