@@ -58,6 +58,7 @@ def test_catalogo_json():
     assert datos["herramienta"] == "kaneda" and datos["version_catalogo"]
     reglas = {r["codigo"]: r for r in datos["reglas"]}
     assert reglas["KAN005"]["cwe"] == "CWE-134" and reglas["KAN002"]["regla_catedra"] == "0x5004h"
+    assert all(r["dueno"] == "kaneda" for r in datos["reglas"])
     assert all(r["ejemplo_incorrecto"] and r["ejemplo_correcto"] for r in datos["reglas"])
 
 
@@ -66,3 +67,19 @@ def test_explain():
     assert res.exit_code == 0
     assert "CWE-120" in res.stdout and "Antes" in res.stdout and "snprintf" in res.stdout and "x5004h" in res.stdout
     assert runner.invoke(app, ["explain", "KAN999"]).exit_code == 2
+
+
+def test_deduplicacion_por_linea_y_estabilidad_ast(tmp_path):
+    f = tmp_path / "dup.c"
+    f.write_text(
+        "#include <stdio.h>\n#include <string.h>\n"
+        "int main(void) {\n"
+        "    char a[16], b[16] = \"x\";\n"
+        "    strcpy(a, b); strcat(a, b);\n"
+        "    return 0;\n"
+        "}\n",
+        encoding="utf-8",
+    )
+    for _ in range(5):
+        rep = auditar_archivos([f])
+        assert [(v.codigo, v.linea) for v in rep.vulnerabilidades] == [("KAN002", 5)]

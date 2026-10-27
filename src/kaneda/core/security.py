@@ -64,9 +64,12 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
     vulnerabilidades: List[Vulnerabilidad] = []
 
     def _traverse(node: Node) -> None:
+        hijos = node.children
         if node.type == "call_expression":
-            func_node = node.child_by_field_name("function")
-            args_node = node.child_by_field_name("arguments")
+            # Extraer hijos directamente desde `node.children` evita `child_by_field_name`,
+            # que en tree-sitter 0.26.0 corrompe referencias C y causa SIGSEGV (N-KANEDA-01).
+            args_node = next((c for c in hijos if c.type == "argument_list"), None)
+            func_node = next((c for c in hijos if c.type != "argument_list"), None)
             if func_node:
                 func_name = _find_identifier(func_node)
                 idx = node.start_point.row + 1
@@ -149,7 +152,8 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
                         and real_args[pos_formato].type in ("identifier", "field_expression", "call_expression", "subscript_expression")
                     ):
                         var_name = (real_args[pos_formato].text or b"").decode("utf-8", errors="replace")
-                        llamada = var_name if pos_formato == 0 else f"{(real_args[0].text or b"").decode('utf-8', errors='replace')}, {var_name}"
+                        arg0_str = (real_args[0].text or b"").decode("utf-8", errors="replace")
+                        llamada = var_name if pos_formato == 0 else f"{arg0_str}, {var_name}"
                         info = CATALOGO_SEGURIDAD["KAN005"]
                         vulnerabilidades.append(Vulnerabilidad(
                             codigo="KAN005",
@@ -193,15 +197,22 @@ def auditar_archivo(archivo: Path) -> List[Vulnerabilidad]:
                         codigo_linea=linea_cod,
                     ))
 
-        for child in node.children:
+        for child in hijos:
             _traverse(child)
 
     _traverse(tree.root_node)
 
     supresiones = leer_supresiones(contenido_original.splitlines())
+    unicas: List[Vulnerabilidad] = []
+    vistas: Set[tuple[str, int]] = set()
     for v in vulnerabilidades:
+        clave = (v.codigo, v.linea)
+        if clave in vistas:
+            continue
+        vistas.add(clave)
         v.suprimida, v.motivo_supresion = suprimida(v.codigo, v.linea, supresiones)
-    return vulnerabilidades
+        unicas.append(v)
+    return unicas
 
 
 def auditar_archivos(rutas: List[Path]) -> ReporteSeguridad:
