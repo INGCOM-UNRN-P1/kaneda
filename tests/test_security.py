@@ -53,3 +53,17 @@ def test_codigo_limpio_seguro(tmp_path):
     rep = auditar_archivos([fuente])
     assert rep.ok is True
     assert len(rep.vulnerabilidades) == 0
+
+
+def test_un_programa_muy_anidado_no_agota_la_pila(tmp_path):
+    fuente = tmp_path / "hondo.c"
+    fuente.write_text("int main(void) { int a = " + "(" * 3000 + "gets(b)" + ")" * 3000 + "; return a; }\n", encoding="utf-8")
+
+    assert [v.codigo for v in auditar_archivo(fuente)] == ["KAN001"]
+
+
+def test_una_llamada_a_traves_de_un_miembro_no_es_la_funcion_de_biblioteca(tmp_path):
+    fuente = tmp_path / "miembro.c"
+    fuente.write_text("void f(void) { gets->uno(1); s->gets(2); (gets)(3); }\n", encoding="utf-8")
+
+    assert [v.columna for v in auditar_archivo(fuente)] == [42]
